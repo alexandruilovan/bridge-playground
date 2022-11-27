@@ -1,0 +1,125 @@
+import UIKit
+
+protocol Content {
+    var title: String { get }
+    var description: String { get }
+    var images: [UIImage] { get }
+}
+
+protocol RemoteConnectable {
+    func connect(to database: DatabaseService)
+    func upload(content: Content)
+    func delete(content: Content)
+}
+
+protocol DatabaseService {
+    func store(content: Content)
+    func remove(content: Content)
+}
+
+struct PlanetsDomainModel: Content {
+    var title: String
+    var images: [UIImage]
+    var numberOfMoons: Int
+    
+    var description: String {
+        return "Planet Model"
+    }
+}
+
+struct StarsDomainModel: Content {
+    var title: String
+    var images: [UIImage]
+    var classType: String
+    
+    var description: String {
+        return "Star Model"
+    }
+}
+
+class PlanetDatabase: DatabaseService {
+    func store(content: Content) {
+        print("\(content) was stored on the Planets Database")
+    }
+    
+    func remove(content: Content) {
+        print("\(content.title) was deleted from the Planets Database")
+    }
+}
+
+class StarDatabase: DatabaseService {
+    func store(content: Content) {
+        print("\(content) was stored on the Stars Database")
+    }
+    
+    func remove(content: Content) {
+        print("\(content.title) was deleted from the Stars Database")
+    }
+}
+
+class BaseViewController: UIViewController, RemoteConnectable {
+   
+    private var databaseService: DatabaseService?
+    
+    func connect(to database: DatabaseService) {
+        databaseService = database
+    }
+    
+    func upload(content: Content) {
+        databaseService?.store(content: content)
+    }
+    
+    func delete(content: Content) {
+        databaseService?.remove(content: content)
+    }
+}
+
+class HomeScreenViewController: BaseViewController {
+    override var description: String {
+        return "HomeScreenViewController"
+    }
+}
+
+class StorageScreenViewController: BaseViewController {
+    override var description: String {
+        return "DetailsScreenViewController"
+    }
+}
+
+
+
+class SpaceAtlasApp {
+    
+    var planetModel: Content {
+        return PlanetsDomainModel(title: "X32912", images: [UIImage(), UIImage()], numberOfMoons: 3)
+    }
+    
+    var starModel: Content {
+        return StarsDomainModel(title: "Alpha Centauri", images: [UIImage()], classType: "G Class")
+    }
+    
+    func show(to container: RemoteConnectable) {
+       
+        /*
+         Show the celestial object on the Home Screen
+         */
+        
+        store(to: StorageScreenViewController())
+    }
+    
+    private func store(to remote: RemoteConnectable) {
+        let planetDatabase = PlanetDatabase()
+        let starDatabase = StarDatabase()
+        
+        remote.connect(to: planetDatabase)
+        remote.upload(content: planetModel)
+        remote.delete(content: planetModel)
+        
+        remote.connect(to: starDatabase)
+        remote.upload(content: starModel)
+        remote.delete(content: starModel)
+    }
+}
+
+let app = SpaceAtlasApp()
+app.show(to: HomeScreenViewController())
